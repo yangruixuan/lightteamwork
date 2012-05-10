@@ -51,15 +51,39 @@ namespace :redmine do
   namespace :plugins do
     desc 'Migrates installed plugins.'
     task :migrate => :environment do
-      Redmine::Plugin.all.each do |plugin|
-        puts "Migrating #{plugin.name}..."
-        plugin.migrate
+      name = ENV['name']
+      version = nil
+      version_string = ENV['version']
+      if version_string
+        if version_string =~ /^\d+$/
+          version = version_string.to_i
+          if name.nil?
+            abort "The VERSION argument requires a plugin NAME."
+          end
+        else
+          abort "Invalid version #{version_string} given."
+        end
+      end
+
+      begin
+        Redmine::Plugin.migrate(name, version)
+      rescue Redmine::PluginNotFound
+        abort "Plugin #{name} was not found."
       end
     end
 
     desc 'Copies plugins assets into the public directory.'
     task :assets => :environment do
-      Redmine::Plugin.mirror_assets
+      name = ENV['name']
+
+      begin
+        Redmine::Plugin.mirror_assets(name)
+      rescue Redmine::PluginNotFound
+        abort "Plugin #{name} was not found."
+      end
     end
   end
 end
+
+# Load plugins' rake tasks
+Dir[File.join(Rails.root, "plugins/*/lib/tasks/**/*.rake")].sort.each { |ext| load ext }

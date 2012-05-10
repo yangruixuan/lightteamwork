@@ -369,7 +369,8 @@ module ApplicationHelper
   end
 
   def to_path_param(path)
-    path.to_s.split(%r{[/\\]}).select {|p| !p.blank?}
+    str = path.to_s.split(%r{[/\\]}).select{|p| !p.blank?}.join("/")
+    str.blank? ? nil : str
   end
 
   def pagination_links_full(paginator, count=nil, options={})
@@ -1106,6 +1107,14 @@ module ApplicationHelper
 
   def has_content?(name)
     (@has_content && @has_content[name]) || false
+  end
+
+  def sidebar_content?
+    has_content?(:sidebar) || view_layouts_base_sidebar_hook_response.present?
+  end
+
+  def view_layouts_base_sidebar_hook_response
+    @view_layouts_base_sidebar_hook_response ||= call_hook(:view_layouts_base_sidebar)
   end
 
   def email_delivery_enabled?
