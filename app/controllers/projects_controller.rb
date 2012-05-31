@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -65,14 +65,14 @@ class ProjectsController < ApplicationController
 
   def new
     @issue_custom_fields = IssueCustomField.find(:all, :order => "#{CustomField.table_name}.position")
-    @trackers = Tracker.all
+    @trackers = Tracker.sorted.all
     @project = Project.new
     @project.safe_attributes = params[:project]
   end
 
   def create
     @issue_custom_fields = IssueCustomField.find(:all, :order => "#{CustomField.table_name}.position")
-    @trackers = Tracker.all
+    @trackers = Tracker.sorted.all
     @project = Project.new
     @project.safe_attributes = params[:project]
 
@@ -105,7 +105,7 @@ class ProjectsController < ApplicationController
 
   def copy
     @issue_custom_fields = IssueCustomField.find(:all, :order => "#{CustomField.table_name}.position")
-    @trackers = Tracker.all
+    @trackers = Tracker.sorted.all
     @root_projects = Project.find(:all,
                                   :conditions => "parent_id IS NULL AND status = #{Project::STATUS_ACTIVE}",
                                   :order => 'name')
@@ -175,7 +175,7 @@ class ProjectsController < ApplicationController
     @issue_custom_fields = IssueCustomField.find(:all, :order => "#{CustomField.table_name}.position")
     @issue_category ||= IssueCategory.new
     @member ||= @project.members.new
-    @trackers = Tracker.all
+    @trackers = Tracker.sorted.all
     @wiki ||= @project.wiki
   end
 

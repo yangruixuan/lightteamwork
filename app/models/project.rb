@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -121,7 +121,7 @@ class Project < ActiveRecord::Base
       self.enabled_module_names = Setting.default_projects_modules
     end
     if !initialized.key?('trackers') && !initialized.key?('tracker_ids')
-      self.trackers = Tracker.all
+      self.trackers = Tracker.sorted.all
     end
   end
 
@@ -130,7 +130,7 @@ class Project < ActiveRecord::Base
   end
 
   def identifier_frozen?
-    errors[:identifier].nil? && !(new_record? || identifier.blank?)
+    errors[:identifier].blank? && !(new_record? || identifier.blank?)
   end
 
   # returns latest created projects

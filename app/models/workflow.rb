@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,8 +25,8 @@ class Workflow < ActiveRecord::Base
   # Returns workflow transitions count by tracker and role
   def self.count_by_tracker_and_role
     counts = connection.select_all("SELECT role_id, tracker_id, count(id) AS c FROM #{Workflow.table_name} GROUP BY role_id, tracker_id")
-    roles = Role.find(:all, :order => 'builtin, position')
-    trackers = Tracker.find(:all, :order => 'position')
+    roles = Role.sorted.all
+    trackers = Tracker.sorted.all
 
     result = []
     trackers.each do |tracker|
@@ -50,7 +50,7 @@ class Workflow < ActiveRecord::Base
     target_trackers = [target_trackers].flatten.compact
     target_roles = [target_roles].flatten.compact
 
-    target_trackers = Tracker.all if target_trackers.empty?
+    target_trackers = Tracker.sorted.all if target_trackers.empty?
     target_roles = Role.all if target_roles.empty?
 
     target_trackers.each do |target_tracker|

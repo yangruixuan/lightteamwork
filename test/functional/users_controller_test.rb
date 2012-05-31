@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,9 @@ class UsersController; def rescue_action(e) raise e end; end
 class UsersControllerTest < ActionController::TestCase
   include Redmine::I18n
 
-  fixtures :users, :projects, :members, :member_roles, :roles, :custom_fields, :custom_values, :groups_users, :auth_sources
+  fixtures :users, :projects, :members, :member_roles, :roles,
+           :custom_fields, :custom_values, :groups_users,
+           :auth_sources
 
   def setup
     @controller = UsersController.new
@@ -74,6 +76,9 @@ class UsersControllerTest < ActionController::TestCase
     users = assigns(:users)
     assert users.any?
     assert_equal([], (users - Group.find(10).users))
+    assert_select 'select[name=group_id]' do
+      assert_select 'option[value=10][selected=selected]'
+    end
   end
 
   def test_show
@@ -153,7 +158,6 @@ class UsersControllerTest < ActionController::TestCase
 
   def test_new
     get :new
-
     assert_response :success
     assert_template :new
     assert assigns(:user)
@@ -225,14 +229,12 @@ class UsersControllerTest < ActionController::TestCase
     assert_no_difference 'User.count' do
       post :create, :user => {}
     end
-
     assert_response :success
     assert_template 'new'
   end
 
   def test_edit
     get :edit, :id => 2
-
     assert_response :success
     assert_template 'edit'
     assert_equal User.find(2), assigns(:user)
@@ -240,8 +242,9 @@ class UsersControllerTest < ActionController::TestCase
 
   def test_update
     ActionMailer::Base.deliveries.clear
-    put :update, :id => 2, :user => {:firstname => 'Changed', :mail_notification => 'only_assigned'}, :pref => {:hide_mail => '1', :comments_sorting => 'desc'}
-
+    put :update, :id => 2,
+        :user => {:firstname => 'Changed', :mail_notification => 'only_assigned'},
+        :pref => {:hide_mail => '1', :comments_sorting => 'desc'}
     user = User.find(2)
     assert_equal 'Changed', user.firstname
     assert_equal 'only_assigned', user.mail_notification
@@ -254,14 +257,12 @@ class UsersControllerTest < ActionController::TestCase
     assert_no_difference 'User.count' do
       put :update, :id => 2, :user => {:firstname => ''}
     end
-
     assert_response :success
     assert_template 'edit'
   end
 
   def test_update_with_group_ids_should_assign_groups
     put :update, :id => 2, :user => {:group_ids => ['10']}
-
     user = User.find(2)
     assert_equal [10], user.group_ids
   end
@@ -306,6 +307,29 @@ class UsersControllerTest < ActionController::TestCase
 
     assert_equal nil, u.reload.auth_source
     assert u.check_password?('newpass')
+  end
+
+  def test_update_notified_project
+    get :edit, :id => 2
+    assert_response :success
+    assert_template 'edit'
+    u = User.find(2)
+    assert_equal [1, 2, 5], u.projects.collect{|p| p.id}.sort
+    assert_equal [1, 2, 5], u.notified_projects_ids.sort
+    assert_tag :tag => 'input',
+               :attributes => {
+                  :id    => 'notified_project_ids_',
+                  :value => 1,
+                }
+    assert_equal 'all', u.mail_notification
+    put :update, :id => 2,
+        :user => {
+           :mail_notification => 'selected',
+         },
+        :notified_project_ids => [1, 2]
+    u = User.find(2)
+    assert_equal 'selected', u.mail_notification
+    assert_equal [1, 2], u.notified_projects_ids.sort
   end
 
   def test_destroy

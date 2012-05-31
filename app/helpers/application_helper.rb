@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -178,7 +178,7 @@ module ApplicationHelper
   end
 
   def format_activity_day(date)
-    date == Date.today ? l(:label_today).titleize : format_date(date)
+    date == User.current.today ? l(:label_today).titleize : format_date(date)
   end
 
   def format_activity_description(text)
@@ -352,7 +352,7 @@ module ApplicationHelper
   def time_tag(time)
     text = distance_of_time_in_words(Time.now, time)
     if @project
-      link_to(text, {:controller => 'activities', :action => 'index', :id => @project, :from => time.to_date}, :title => format_time(time))
+      link_to(text, {:controller => 'activities', :action => 'index', :id => @project, :from => User.current.time_to_date(time)}, :title => format_time(time))
     else
       content_tag('acronym', text, :title => format_time(time))
     end
@@ -399,7 +399,7 @@ module ApplicationHelper
 
     unless count.nil?
       html << " (#{paginator.current.first_item}-#{paginator.current.last_item}/#{count})"
-      if per_page_links != false && links = per_page_links(paginator.items_per_page)
+      if per_page_links != false && links = per_page_links(paginator.items_per_page, count)
 	      html << " | #{links}"
       end
     end
@@ -407,11 +407,23 @@ module ApplicationHelper
     html.html_safe
   end
 
-  def per_page_links(selected=nil)
-    links = Setting.per_page_options_array.collect do |n|
+  def per_page_links(selected=nil, item_count=nil)
+    values = Setting.per_page_options_array
+    if item_count && values.any?
+      if item_count > values.first
+        max = values.detect {|value| value >= item_count} || item_count
+      else
+        max = item_count
+      end
+      values = values.select {|value| value <= max || value == selected}
+    end
+    if values.empty? || (values.size == 1 && values.first == selected)
+      return nil
+    end
+    links = values.collect do |n|
       n == selected ? n : link_to_content_update(n, params.merge(:per_page => n))
     end
-    links.size > 1 ? l(:label_display_per_page, links.join(', ')) : nil
+    l(:label_display_per_page, links.join(', '))
   end
 
   def reorder_links(name, url, method = :post)

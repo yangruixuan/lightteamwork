@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -32,16 +32,13 @@ class Tracker < ActiveRecord::Base
   validates_uniqueness_of :name
   validates_length_of :name, :maximum => 30
 
-  scope :named, lambda {|arg| { :conditions => ["LOWER(#{table_name}.name) = LOWER(?)", arg.to_s.strip]}}
+  scope :sorted, order("#{table_name}.position ASC")
+  scope :named, lambda {|arg| where("LOWER(#{table_name}.name) = LOWER(?)", arg.to_s.strip)}
 
   def to_s; name end
 
   def <=>(tracker)
-    name <=> tracker.name
-  end
-
-  def self.all
-    find(:all, :order => 'position')
+    position <=> tracker.position
   end
 
   # Returns an array of IssueStatus that are used
@@ -63,6 +60,6 @@ class Tracker < ActiveRecord::Base
 
 private
   def check_integrity
-    raise "Can't delete tracker" if Issue.find(:first, :conditions => ["tracker_id=?", self.id])
+    raise Exception.new("Can't delete tracker") if Issue.where(:tracker_id => self.id).any?
   end
 end

@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -367,6 +367,15 @@ class User < Principal
       Date.today
     else
       Time.now.in_time_zone(time_zone).to_date
+    end
+  end
+
+  # Returns the day of +time+ according to user's time zone
+  def time_to_date(time)
+    if time_zone.nil?
+      time.to_date
+    else
+      time.in_time_zone(time_zone).to_date
     end
   end
 

@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -36,6 +36,10 @@ class QueriesControllerTest < ActionController::TestCase
                                                  :name => 'query_is_for_all',
                                                  :checked => nil,
                                                  :disabled => nil }
+    assert_select 'select[name=?]', 'c[]' do
+      assert_select 'option[value=tracker]'
+      assert_select 'option[value=subject]'
+    end
   end
 
   def test_new_global_query
@@ -145,6 +149,7 @@ class QueriesControllerTest < ActionController::TestCase
     end
     assert_response :success
     assert_template 'new'
+    assert_select 'input[name=?]', 'query[name]'
   end
 
   def test_edit_global_public_query

@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2011  Jean-Philippe Lang
+# Copyright (C) 2006-2012  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -126,8 +126,8 @@ class Query < ActiveRecord::Base
                                  :list_subprojects => [ "*", "!*", "=" ],
                                  :date => [ "=", ">=", "<=", "><", "<t+", ">t+", "t+", "t", "w", ">t-", "<t-", "t-", "!*", "*" ],
                                  :date_past => [ "=", ">=", "<=", "><", ">t-", "<t-", "t-", "t", "w", "!*", "*" ],
-                                 :string => [ "=", "~", "!", "!~" ],
-                                 :text => [  "~", "!~" ],
+                                 :string => [ "=", "~", "!", "!~", "!*", "*" ],
+                                 :text => [  "~", "!~", "!*", "*" ],
                                  :integer => [ "=", ">=", "<=", "><", "!*", "*" ],
                                  :float => [ "=", ">=", "<=", "><", "!*", "*" ] }
 
@@ -848,12 +848,18 @@ class Query < ActiveRecord::Base
     s = []
     if from
       from_yesterday = from - 1
-      from_yesterday_utc = Time.gm(from_yesterday.year, from_yesterday.month, from_yesterday.day)
-      s << ("#{table}.#{field} > '%s'" % [connection.quoted_date(from_yesterday_utc.end_of_day)])
+      from_yesterday_time = Time.local(from_yesterday.year, from_yesterday.month, from_yesterday.day)
+      if self.class.default_timezone == :utc
+        from_yesterday_time = from_yesterday_time.utc
+      end
+      s << ("#{table}.#{field} > '%s'" % [connection.quoted_date(from_yesterday_time.end_of_day)])
     end
     if to
-      to_utc = Time.gm(to.year, to.month, to.day)
-      s << ("#{table}.#{field} <= '%s'" % [connection.quoted_date(to_utc.end_of_day)])
+      to_time = Time.local(to.year, to.month, to.day)
+      if self.class.default_timezone == :utc
+        to_time = to_time.utc
+      end
+      s << ("#{table}.#{field} <= '%s'" % [connection.quoted_date(to_time.end_of_day)])
     end
     s.join(' AND ')
   end

@@ -101,10 +101,15 @@ class Attachment < ActiveRecord::Base
       logger.info("Saving attachment '#{self.diskfile}' (#{@temp_file.size} bytes)")
       md5 = Digest::MD5.new
       File.open(diskfile, "wb") do |f|
-        buffer = ""
-        while (buffer = @temp_file.read(8192))
-          f.write(buffer)
-          md5.update(buffer)
+        if @temp_file.respond_to?(:read)
+          buffer = ""
+          while (buffer = @temp_file.read(8192))
+            f.write(buffer)
+            md5.update(buffer)
+          end
+        else
+          f.write(@temp_file)
+          md5.update(@temp_file)
         end
       end
       self.digest = md5.hexdigest
@@ -118,7 +123,7 @@ class Attachment < ActiveRecord::Base
 
   # Deletes the file from the file system if it's not referenced by other attachments
   def delete_from_disk
-    if Attachment.first(:conditions => ["disk_filename = ? AND id <> ?", disk_filename, id]).nil?
+    if Attachment.where("disk_filename = ? AND id <> ?", disk_filename, id).empty?
       delete_from_disk!
     end
   end
@@ -170,7 +175,7 @@ class Attachment < ActiveRecord::Base
   def self.find_by_token(token)
     if token.to_s =~ /^(\d+)\.([0-9a-f]+)$/
       attachment_id, attachment_digest = $1, $2
-      attachment = Attachment.first(:conditions => {:id => attachment_id, :digest => attachment_digest})
+      attachment = Attachment.where(:id => attachment_id, :digest => attachment_digest).first
       if attachment && attachment.container.nil?
         attachment
       end
@@ -195,8 +200,7 @@ class Attachment < ActiveRecord::Base
   end
 
   def self.prune(age=1.day)
-    attachments = Attachment.all(:conditions => ["created_on < ? AND (container_type IS NULL OR container_type = '')", Time.now - age])
-    attachments.each(&:destroy)
+    Attachment.where("created_on < ? AND (container_type IS NULL OR container_type = '')", Time.now - age).destroy_all
   end
 
   private
