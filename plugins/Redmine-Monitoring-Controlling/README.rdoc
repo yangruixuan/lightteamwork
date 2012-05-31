@@ -1,0 +1,59 @@
+= Monitoring & Controlling (M&C) - Redmine Plugin
+
+M&C is a Redmine Plugin used as a chart tool to monitoring issues' project 
+
+== Website - Portuguese only
+
+* Visite: Monitoramento-&-Controle[http://alexmonteiro.github.com/Redmine-Monitoring-Controlling]
+
+== Features
+
+===Master Version
+====Task Management
+* Pie Chart of issues by statuses;
+* Pie Chart of manageable and unmanagleabe issues;
+* Chart with overdue tasks by project.
+====Time Management
+* Line chart with estimated hours and spent hours till due date of tasks.
+* Column chart with ammount of estimated and spent hours on project.
+====Human Resource Management
+* Column Bar charts issues by Assignee
+* Column Bar chart with issues by Status of each Assignee
+
+
+===v0.0.2
+====Task Management
+* Pie Chart of issues by statuses;
+* Pie Chart of manageable and unmanagleabe issues;
+* Chart with overdue tasks by project.
+====Time Management
+* Line chart with estimated hours and spent hours till due date of tasks.
+* Column chart with ammount of estimated and spent hours on project.
+
+
+===v0.0.1
+* Pie Chart of issues by statuses;
+* Pie Chart of manageable and unmanagleabe issues;
+* Chart with overdue tasks by project.
+
+== How to install 
+
+=== Pre-requisit
+
+* Redmine trunk version;
+
+=== Step-by-step
+
+* Copie ou clone a o conteúdo do plugin para a pasta de plugins do Redmine: /vendor/plugins/ .
+    
+    cd /{redmineInstalationDir}/vendor/plugins
+    git clone http://github.com/alexmonteiro/Redmine-Monitoring-Controlling.git
+    
+* Run db:migrate_plugins to copy the assets.
+* Restart your redmine application.
+* Activate your M&C on projects modulues.
+
+== Credits
+
+* Highcharts[http://www.highcharts.com/]: interactive javascript charts for your web projects;
+* Railscasts[http://railscasts.com/]: learn how to use highcharts on your rails app in #223[http://railscasts.com/episodes/223-charts] episode.
